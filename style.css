@@ -107,10 +107,17 @@
     box-shadow:0 10px 40px rgba(0,0,0,0.4);
 
 }
-
+/*.options-container{
+    display: block;
+    width: 480px;
+    padding: 25px;
+    text-align: center;
+}*/
 .quiz-container{
     display: block;
     width: 480px;
+    padding: 25px;
+    text-align: center;
 }
 
 .quiz-content , .quiz-quoins{
@@ -142,6 +149,7 @@
     color: #fff;
     align-items: center;
     gap: 5px;
+    transition: 0.3s ease;
 } 
 
 .quiz-header .quiz-timer span{
@@ -220,6 +228,7 @@
 }
 .quiz-footer .next-quoins-btn{
     display: inline-flex;
+    visibility: hidden;
     gap: 5px;
     align-items: center;
     padding: 9px 17px;
@@ -237,11 +246,11 @@
     border-radius: 50px;
 }
 
-.quiz-footer .qution-status{
+.quiz-footer .question-status{
     font-weight: 500;
 }
 
-.quiz-footer .qution-status b{
+.quiz-footer .question-status b{
     font-weight: 700;
 }
 /* result*/
