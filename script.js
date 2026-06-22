@@ -1,251 +1,235 @@
 const configContainer = document.querySelector(".container");
 const quizContainer = document.querySelector(".quiz-container");
+const resultContainer = document.querySelector(".result-container");
+
 const answerOption = document.querySelector(".answer-options");
 const nextQuestionBtn = document.querySelector(".next-quoins-btn");
 const questionStatus = document.querySelector(".question-status");
 const timerDisplay = document.querySelector(".quiz-duration");
-const resultContainer = document.querySelector(".result-container");
 
-// Quiz Variables
 const QUIZ_TIMER_LIMIT = 10;
+
 let currentTime = QUIZ_TIMER_LIMIT;
 let timer = null;
 let quizCategory = "HTML";
 let numberOfQuestion = 10;
 let currentQuestion = null;
-const questionIndexHistory = [];
 let correctAnswerCount = 0;
+let currentQuestionIndex = 0;
 
-// Show Result
-const showQuizResult = () => {
-  quizContainer.style.display = "none";
-  resultContainer.style.display = "block";
-
-  const resultText = `
-    You answered <b>${correctAnswerCount}</b> out of
-    <b>${numberOfQuestion}</b> questions correctly.
-  `;
-
-  document.querySelector(".result-massages").innerHTML = resultText;
-};
-
-// Reset Timer
-const resetTimer = () => {
-  clearInterval(timer);
-  currentTime = QUIZ_TIMER_LIMIT;
-  timerDisplay.textContent = `${currentTime}s`;
-};
+// Timer Reset
+function resetTimer() {
+    clearInterval(timer);
+    currentTime = QUIZ_TIMER_LIMIT;
+    timerDisplay.textContent = `${currentTime}s`;
+}
 
 // Highlight Correct Answer
-const highlightCorrectAnswer = () => {
-  const correctOption =
-    answerOption.querySelectorAll(".answer-option")[currentQuestion.correctAnswer];
+function highlightCorrectAnswer() {
+    const options =
+        answerOption.querySelectorAll(".answer-option");
 
-  if (!correctOption) return;
+    const correctOption =
+        options[currentQuestion.correctAnswer];
 
-  correctOption.classList.add("correct");
-
-  const iconHTML =
-    `<span class="material-symbols-rounded">check_circle</span>`;
-
-  correctOption.insertAdjacentHTML("beforeend", iconHTML);
-};
-
-// Start Timer
-const startTimer = () => {
-  timer = setInterval(() => {
-    currentTime--;
-    timerDisplay.textContent = `${currentTime}s`;
-
-    if (currentTime <= 0) {
-      clearInterval(timer);
-
-      highlightCorrectAnswer();
-
-      nextQuestionBtn.style.visibility = "visible";
-
-      answerOption
-        .querySelectorAll(".answer-option")
-        .forEach(option => option.style.pointerEvents = "none");
+    if (correctOption) {
+        correctOption.classList.add("correct");
     }
-  }, 1000);
-};
+}
 
-// Get Random Question
-const getRandomQuestions = () => {
+// Timer Start
+function startTimer() {
 
-  const selectedCategory = question.find(
-    cat => cat.category.toLowerCase() === quizCategory.toLowerCase()
-  );
+    timer = setInterval(() => {
 
-  if (!selectedCategory) return null;
+        currentTime--;
+        timerDisplay.textContent = `${currentTime}s`;
 
-  const categoryQuestions = selectedCategory.questions || [];
+        if (currentTime <= 0) {
 
-  if (
-    questionIndexHistory.length >=
-    Math.min(categoryQuestions.length, numberOfQuestion)
-  ) {
-    showQuizResult();
-    return null;
-  }
+            clearInterval(timer);
 
-  const availableQuestion = categoryQuestions.filter(
-    (_, index) => !questionIndexHistory.includes(index)
-  );
+            highlightCorrectAnswer();
 
-  const randomQuestion =
-    availableQuestion[
-      Math.floor(Math.random() * availableQuestion.length)
-    ];
+            answerOption
+                .querySelectorAll(".answer-option")
+                .forEach(option => {
+                    option.style.pointerEvents = "none";
+                });
 
-  questionIndexHistory.push(
-    categoryQuestions.indexOf(randomQuestion)
-  );
+            nextQuestionBtn.style.visibility = "visible";
+        }
 
-  return randomQuestion;
-};
-
-// Handle Answer
-const handleAnswer = (option, answerIndex) => {
-
-  clearInterval(timer);
-
-  const isCorrect =
-    currentQuestion.correctAnswer === answerIndex;
-
-  option.classList.add(
-    isCorrect ? "correct" : "incorrect"
-  );
-
-  if (isCorrect) {
-    correctAnswerCount++;
-  } else {
-    highlightCorrectAnswer();
-  }
-
-  const iconHTML = `
-    <span class="material-symbols-rounded">
-      ${isCorrect ? "check_circle" : "cancel"}
-    </span>
-  `;
-
-  option.insertAdjacentHTML("beforeend", iconHTML);
-
-  answerOption
-    .querySelectorAll(".answer-option")
-    .forEach(option =>
-      option.style.pointerEvents = "none"
-    );
-
-  nextQuestionBtn.style.visibility = "visible";
-};
+    }, 1000);
+}
 
 // Render Question
-const renderQuestion = () => {
+function renderQuestion() {
 
-  currentQuestion = getRandomQuestions();
-
-  if (!currentQuestion) return;
-
-  resetTimer();
-  startTimer();
-
-  answerOption.innerHTML = "";
-
-  nextQuestionBtn.style.visibility = "hidden";
-
-  document.querySelector(".quiz-quoins").textContent =
-    currentQuestion.question;
-
-  questionStatus.innerHTML = `
-    <b>${questionIndexHistory.length}</b>
-    of
-    <b>${numberOfQuestion}</b>
-    Questions
-  `;
-
-  currentQuestion.options.forEach(
-    (option, index) => {
-
-      const li = document.createElement("li");
-
-      li.classList.add("answer-option");
-
-      li.textContent = option;
-
-      answerOption.appendChild(li);
-
-      li.addEventListener(
-        "click",
-        () => handleAnswer(li, index)
-      );
-    }
-  );
-};
-
-// Start Quiz
-const startQuiz = () => {
-
-  configContainer.style.display = "none";
-  quizContainer.style.display = "block";
-
-  quizCategory =
-    configContainer.querySelector(".category.active").textContent;
-
-  numberOfQuestion =
-    parseInt(
-      configContainer.querySelector(".questions.active").textContent
+    const categoryData = question.find(
+        q => q.category === quizCategory
     );
 
-  renderQuestion();
-};
+    if (!categoryData) return;
+
+    if (
+        currentQuestionIndex >= categoryData.questions.length ||
+        currentQuestionIndex >= numberOfQuestion
+    ) {
+        showQuizResult();
+        return;
+    }
+
+    currentQuestion =
+        categoryData.questions[currentQuestionIndex];
+
+    resetTimer();
+    startTimer();
+
+    answerOption.innerHTML = "";
+
+    nextQuestionBtn.style.visibility = "hidden";
+
+    document.querySelector(".quiz-quoins").textContent =
+        currentQuestion.question;
+
+    questionStatus.innerHTML =
+        `<b>${currentQuestionIndex + 1}</b> of <b>${numberOfQuestion}</b> Questions`;
+
+    currentQuestion.options.forEach((option, index) => {
+
+        const li = document.createElement("li");
+
+        li.classList.add("answer-option");
+        li.textContent = option;
+
+        li.addEventListener("click", () => {
+            handleAnswer(li, index);
+        });
+
+        answerOption.appendChild(li);
+    });
+}
+
+// Handle Answer
+function handleAnswer(option, answerIndex) {
+
+    clearInterval(timer);
+
+    const isCorrect =
+        answerIndex === currentQuestion.correctAnswer;
+
+    if (isCorrect) {
+        option.classList.add("correct");
+        correctAnswerCount++;
+    } else {
+        option.classList.add("incorrect");
+        highlightCorrectAnswer();
+    }
+
+    answerOption
+        .querySelectorAll(".answer-option")
+        .forEach(opt => {
+            opt.style.pointerEvents = "none";
+        });
+
+    nextQuestionBtn.style.visibility = "visible";
+}
+
+// Show Result
+function showQuizResult() {
+
+    quizContainer.style.display = "none";
+    resultContainer.style.display = "block";
+
+    document.querySelector(".result-massages").innerHTML =
+        `You answered <b>${correctAnswerCount}</b> out of <b>${Math.min(numberOfQuestion, currentQuestionIndex)}</b> questions correctly!`;
+
+         // Confetti Animation
+    const end = Date.now() + 15 * 1000;
+    const colors = ["#bb0000", "#ffffff"];
+
+    (function frame() {
+        confetti({
+            particleCount: 2,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors
+        });
+
+        confetti({
+            particleCount: 2,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors
+        });
+
+        if (Date.now() < end) {
+            requestAnimationFrame(frame);
+        }
+    })();
+}
+
+
+// Start Quiz
+function startQuiz() {
+
+    configContainer.style.display = "none";
+    quizContainer.style.display = "block";
+
+    quizCategory =
+        configContainer.querySelector(".category.active").textContent;
+
+    numberOfQuestion =
+        parseInt(
+            configContainer.querySelector(".questions.active").textContent
+        );
+
+    currentQuestionIndex = 0;
+    correctAnswerCount = 0;
+
+    renderQuestion();
+}
+
+// Next Question
+nextQuestionBtn.addEventListener("click", () => {
+    currentQuestionIndex++;
+    renderQuestion();
+});
+
+// Category Selection
+document
+    .querySelectorAll(".category, .questions")
+    .forEach(option => {
+
+        option.addEventListener("click", () => {
+
+            option.parentNode
+                .querySelector(".active")
+                .classList.remove("active");
+
+            option.classList.add("active");
+        });
+    });
 
 // Reset Quiz
-const resetQuiz = () => {
+function resetQuiz() {
 
-  resetTimer();
+    clearInterval(timer);
 
-  correctAnswerCount = 0;
+    currentQuestionIndex = 0;
+    correctAnswerCount = 0;
 
-  questionIndexHistory.length = 0;
-
-  resultContainer.style.display = "none";
-
-  configContainer.style.display = "block";
-};
-
-// Category & Question Selection
-document
-  .querySelectorAll(".category, .questions")
-  .forEach(option => {
-
-    option.addEventListener("click", () => {
-
-      option.parentNode
-        .querySelector(".active")
-        .classList.remove("active");
-
-      option.classList.add("active");
-    });
-  });
-
-// Events
-nextQuestionBtn.addEventListener(
-  "click",
-  renderQuestion
-);
+    resultContainer.style.display = "none";
+    configContainer.style.display = "block";
+}
 
 document
-  .querySelector(".try-again-button")
-  ?.addEventListener(
-    "click",
-    resetQuiz
-  );
+    .querySelector(".try-again-button")
+    .addEventListener("click", resetQuiz);
 
 document
-  .querySelector(".quiz-btn")
-  .addEventListener(
-    "click",
-    startQuiz
-  );
+    .querySelector(".quiz-btn")
+    .addEventListener("click", startQuiz);
